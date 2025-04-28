@@ -23,8 +23,8 @@ urlpatterns = [
 ]
 
 urlpatterns += [
-    path('upload-image/', ImageUploadView.as_view(), name='upload-image'),
-    # path("upload-image/", views.upload_image, name="upload_image"),
+    # path('upload-image1/', ImageUploadView.as_view(), name='upload-image'),
+    path("upload-image/", views.upload_image, name="upload_image"),
     path("get-image/<str:filename>/", views.get_image, name="get_image"),
 ]
 

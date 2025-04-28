@@ -1,4 +1,3 @@
-
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .serializers import   PhotoSerializer, RegisterSerializer
@@ -97,19 +96,53 @@ class PhotoViewSet(viewsets.ModelViewSet):
 
 
 import requests
+def nutrition_data(nutrition_info):
+    nutrition_data = {}
+    
+    nutrition_elements = [
+        "Calories", "Protein", "Carbohydrates", "Dietary Fiber",
+        "Sugars", "Fat", "Sodium", "Potassium"
+    ]
+    
+    lines = nutrition_info.split('\n')
+    
+    for line in lines:
+        if not line.strip():
+            continue
+        
+        for element in nutrition_elements:
+            if element in line:
+                value_part = line.split('**')[-1].split(':')[-1].strip()
+                if element == "Calories":
+                    value = ''.join(filter(str.isdigit, value_part))  # Keep only digits
+                else:
+                    first_token = value_part.split()[0]
+                    value = ''.join(filter(lambda c: c.isdigit() or c == '.', first_token))  # Keep digits and decimal point
+                nutrition_data[element] = value
+                break
+    
+    return nutrition_data
 
 def send_image_to_backend(file_path):
     url = "https://1mb1-nutritionguide.hf.space/predictNUT"
     with open(file_path, 'rb') as image_file:
         files = {'file': image_file}
         response = requests.post(url, files=files)
-
-    if response.status_code == 200:
         response_data = response.json()
+        nutrationinformation=nutrition_data(response_data.get('Nutrition_info', ''))
+    if response.status_code == 200:
+        
         # Save the response data into the food model
         food_instance = food(
             namefood=response_data.get('Predicted_label', 'Unknown'),
-            nutrationinformation=response_data.get('Nutrition_info', ''),
+            Calories=float(nutrationinformation.get('Calories', 0.00)),
+            Protein=float(nutrationinformation.get('Protein', 0.00)),
+            Carbohydrates=float(nutrationinformation.get('Carbohydrates', 0.00)),
+            Dietary_Fiber=float(nutrationinformation.get('Dietary Fiber', 0.00)),
+            Sugars=float(nutrationinformation.get('Sugars', 0.00)),
+            Fat=float(nutrationinformation.get('Fat', 0.00)),
+            Sodium=float(nutrationinformation.get('Sodium', 0.00)),
+            Potassium=float(nutrationinformation.get('Potassium', 0.00)),
             health=response_data.get('Information', ''),
             recipy=response_data.get('Recipes', '')
         )
@@ -125,8 +158,17 @@ def upload_image(request):
         file = request.FILES['file']
         file_name = default_storage.save(f"media/api/{file.name}", ContentFile(file.read()))
         file_path = default_storage.path(file_name)  # Get the full file path
-        send_image_to_backend(file_path)  # Send the saved file to the backend function
-        return JsonResponse({"message": "File uploaded successfully", "file_path": file_name})
+
+        try:
+            response_data = send_image_to_backend(file_path)  # Send the saved file to the backend function
+            return JsonResponse({
+                "message": "File uploaded successfully",
+                "file_path": file_name,
+                "response_data": response_data
+            })
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
     return JsonResponse({"error": "Invalid request"}, status=400)
 
 @app.get("/get-image/{filename}")
@@ -136,15 +178,18 @@ def get_image(filename: str):
         return FileResponse(file_path)
     return {"error": "File not found"}
 
-class ImageUploadView(APIView):
-    def post(self, request, *args, **kwargs):
-        serializer = ImageUploadSerializer(data=request.data)
-        if serializer.is_valid():
-            file = serializer.validated_data['file']
-            # Save the file or process it as needed
-            file_path = f'media/uploads/{file.name}'
-            with open(file_path, 'wb+') as destination:
-                for chunk in file.chunks():
-                    destination.write(chunk)
-            return Response({'message': 'File uploaded successfully'}, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+# class ImageUploadView(APIView):
+#     def post(self, request, *args, **kwargs):
+#         serializer = ImageUploadSerializer(data=request.data)
+#         if serializer.is_valid():
+#             file = serializer.validated_data['file']
+#             # Save the file or process it as needed
+#             file_path = f'media/uploads/{file.name}'
+#             with open(file_path, 'wb+') as destination:
+#                 for chunk in file.chunks():
+#                     destination.write(chunk)
+#             return Response({'message': 'File uploaded successfully'}, status=status.HTTP_200_OK)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+

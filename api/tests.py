@@ -1,5 +1,6 @@
 import requests
 url = "http://127.0.0.1:8000/upload-image/"
+# url = "https://1mb1-nutritionguide.hf.space/predictNUT"
 image_path = r"api\x.jpeg"
 with open(image_path, 'rb') as image_file:
     files = {'file': image_file}
