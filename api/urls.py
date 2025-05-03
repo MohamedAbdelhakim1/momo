@@ -23,6 +23,7 @@ urlpatterns = [
 ]
 
 urlpatterns += [
+    path('chat/', ChatBotAPIView.as_view(), name='chat'),
     # path('upload-image1/', ImageUploadView.as_view(), name='upload-image'),
     path("upload-image/", views.upload_image, name="upload_image"),
     path("get-image/<str:filename>/", views.get_image, name="get_image"),

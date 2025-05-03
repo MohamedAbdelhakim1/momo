@@ -21,4 +21,14 @@ class FoodSerializer(serializers.ModelSerializer):
 
 
 class ImageUploadSerializer(serializers.Serializer):
-    file = serializers.ImageField()                
+    file = serializers.ImageField()    
+
+
+
+
+
+class ChatMessageSerializer(serializers.Serializer):
+    message = serializers.CharField(required=True)
+
+class ChatResponseSerializer(serializers.Serializer):
+    bot_response = serializers.CharField()                    

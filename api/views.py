@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 from .serializers import *
 import requests
-
+from .serializers import ChatMessageSerializer, ChatResponseSerializer
 import os
 from django.core.files.base import ContentFile
 from rest_framework import viewsets
@@ -193,3 +193,43 @@ def get_image(filename: str):
 
 
 
+
+
+class ChatBotAPIView(APIView):
+    def post(self, request):
+        serializer = ChatMessageSerializer(data=request.data)
+        if serializer.is_valid():
+            user_message = serializer.validated_data['message']
+
+            try:
+                # Send request to the external AI service
+                external_api_url = "https://1mb1-chatbotgraduation.hf.space/askbot"
+                external_response = requests.post(
+                    external_api_url,
+                    json={"message": user_message},
+                    timeout=20 # timeout in seconds
+                )
+
+                if external_response.status_code == 200:
+                    # Return the response from the external API
+                    response_data = external_response.json()
+                    # Make sure the response format matches what the frontend expects
+                    formatted_response = {
+                        'bot_response': response_data.get('response', 'Sorry, I couldn\'t process that request.')
+                    }
+                    return Response(formatted_response, status=status.HTTP_200_OK)
+                else:
+                    # Handle error from external API
+                    return Response(
+                        {'error': f'External API returned status code {external_response.status_code}'},
+                        status=status.HTTP_502_BAD_GATEWAY
+                    )
+
+            except requests.exceptions.RequestException as e:
+                # Handle connection errors, timeouts, etc.
+                return Response(
+                    {'error': f'Error connecting to external API: {str(e)}'},
+                    status=status.HTTP_503_SERVICE_UNAVAILABLE
+                )
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
