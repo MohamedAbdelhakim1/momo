@@ -93,6 +93,12 @@ def deleteRegister(request, pk):
 class PhotoViewSet(viewsets.ModelViewSet):
     queryset = Photo.objects.all().order_by('-uploaded_at')
     serializer_class = PhotoSerializer
+@api_view(['POST'])
+def createFood(request):
+    serializer = FoodSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+    return Response(serializer.data)
 
 
 import requests

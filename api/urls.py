@@ -20,6 +20,7 @@ urlpatterns = [
     path("registers/<str:pk>/", views.getRegister),
     # path("upload/", upload_image, name="upload_image"),
     path('ph/', PhotoViewSet.as_view({'get': 'list', 'post': 'create'}), name='photo-list'),
+     path("food/create/", views.createFood),
 ]
 
 urlpatterns += [
