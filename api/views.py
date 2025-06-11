@@ -1,63 +1,180 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .serializers import   PhotoSerializer, RegisterSerializer
-from .models import   Photo, Register 
-from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.views import APIView
-from rest_framework import status
+from .serializers import   RegisterSerializer
+from .models import   Register
 from .serializers import *
 import requests
-from .serializers import ChatMessageSerializer, ChatResponseSerializer
-import os
-from django.core.files.base import ContentFile
-from rest_framework import viewsets
-from fastapi import FastAPI, File, UploadFile
-from fastapi.responses import FileResponse
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.core.files.storage import default_storage
-from .models import food
-
-app = FastAPI()
-
+from .serializers import Food1Serializer ,ChatSerializer
+from .models import Food1 ,Chat
+from datetime import datetime, timedelta
 @api_view(['GET'])
-def getRoute(request):
+def getRoutes(request):
     routes = [
         {
-            'Endpoint': '/back/',
+            'Endpoint': '/registers/',
             'method': 'GET',
             'body': None,
-            'description': 'Returns an array of notes',
+            'description': 'Get all user registers',
         },
         {
-            'Endpoint': '/back/id',
-            'method': 'GET',
-            'body': None,
-            'description': 'Returns a single note object',
-        },
-        {
-            'Endpoint': '/back/create/',
+            'Endpoint': '/registers/create/',
             'method': 'POST',
-            'body': {'body': ""},
-            'description': 'Create new notes',
+            'body': {
+                "name": "string",
+                "email": "string",
+                "password": "string",
+                "phone": "string",
+                "gender": "string",
+                "height": "decimal",
+                "weight": "decimal",
+                "disease": "string",
+                "age": "integer"
+            },
+            'description': 'Create a new user register',
         },
         {
-            'Endpoint': '/back/id/update/',
+            'Endpoint': '/registers/<str:pk>/',
+            'method': 'GET',
+            'body': None,
+            'description': 'Get a specific user register by ID',
+        },
+        {
+            'Endpoint': '/registers/<str:pk>/update/',
             'method': 'PUT',
-            'body': {'body': ""},
-            'description': 'Updates an existing note with data',
+            'body': {
+                "name": "string",
+                "email": "string",
+                "password": "string",
+                "phone": "string",
+                "gender": "string",
+                "height": "decimal",
+                "weight": "decimal",
+                "disease": "string",
+                "age": "integer"
+            },
+            'description': 'Update a user register',
         },
         {
-            'Endpoint': '/back/id/delete/',
+            'Endpoint': '/registers/<str:pk>/delete/',
             'method': 'DELETE',
             'body': None,
-            'description': 'Deletes an existing note',
-        }
+            'description': 'Delete a user register',
+        },
+        {
+            'Endpoint': '/foods/',
+            'method': 'GET',
+            'body': None,
+            'description': 'Get all Food1 entries',
+        },
+        {
+            'Endpoint': '/food/create1/',
+            'method': 'POST',
+            'body': {
+                "user_id": "integer (user id)",
+                "namefood": "string",
+                "nut_info": "string",
+                "health": "string",
+                "recipy": "string"
+            },
+            'description': 'Create a new Food1 entry',
+        },
+        {
+            'Endpoint': '/food/<str:pk>/',
+            'method': 'GET',
+            'body': None,
+            'description': 'Get a specific Food1 entry by ID',
+        },
+        {
+            'Endpoint': '/food/<str:pk>/update/',
+            'method': 'PUT',
+            'body': {
+                "user_id": "integer (user id)",
+                "namefood": "string",
+                "nut_info": "string",
+                "health": "string",
+                "recipy": "string"
+            },
+            'description': 'Update a Food1 entry',
+        },
+        {
+            'Endpoint': '/food/<str:pk>/delete/',
+            'method': 'DELETE',
+            'body': None,
+            'description': 'Delete a Food1 entry',
+        },
+        {
+            'Endpoint': '/fooddate/<str:date>/?range=day|week|month&user_id=<user_id>',
+            'method': 'GET',
+            'body': None,
+            'description': 'Get Food1 entries filtered by date and optional user',
+        },
+        {
+            'Endpoint': '/chat/',
+            'method': 'GET',
+            'body': None,
+            'description': 'Get all chat messages',
+        },
+        {
+            'Endpoint': '/chat/create/',
+            'method': 'POST',
+            'body': {
+                "user_id": "integer (user id)",
+                "usermessage": "string",
+                "botmessage": "string"
+            },
+            'description': 'Create a chat message',
+        },
+        {
+            'Endpoint': '/chat/<str:pk>/delete/',
+            'method': 'DELETE',
+            'body': None,
+            'description': 'Delete a chat message',
+        },
+        {
+            'Endpoint': '/food/create/',
+            'method': 'POST',
+            'body': {
+                "namefood": "string",
+                "Calories": "decimal",
+                "Protein": "decimal",
+                "Carbohydrates": "decimal",
+                "Dietary_Fiber": "decimal",
+                "Sugars": "decimal",
+                "Fat": "decimal",
+                "Sodium": "decimal",
+                "Potassium": "decimal",
+                "health": "string",
+                "recipy": "string"
+            },
+            'description': 'Create a Food entry (nutrition info from image)',
+        },
+        {
+            'Endpoint': '/api-token-auth/',
+            'method': 'POST',
+            'body': {
+                "username": "string",
+                "password": "string"
+            },
+            'description': 'Obtain auth token by providing username and password',
+        },
+        {
+            'Endpoint': '/upload_image/',
+            'method': 'POST',
+            'body': {
+                "file": "image file"
+            },
+            'description': 'Upload an image and get nutrition info processed',
+        },
+        {
+            'Endpoint': '/get-image/<filename>/',
+            'method': 'GET',
+            'body': None,
+            'description': 'Retrieve an uploaded image by filename',
+        },
     ]
     return Response(routes)
 
-
-
+#--- user ---
 @api_view(['GET'])
 def getRegisters(request):
     registers = Register.objects.all()
@@ -90,152 +207,87 @@ def deleteRegister(request, pk):
     register = Register.objects.get(id=pk)
     register.delete()
     return Response('Register was deleted')
-class PhotoViewSet(viewsets.ModelViewSet):
-    queryset = Photo.objects.all().order_by('-uploaded_at')
-    serializer_class = PhotoSerializer
+
+#--- chat ---
+@api_view(['GET'])
+def getchat(request):
+    chat = Chat.objects.all()
+    serializer = ChatSerializer(chat, many=True)
+    return Response(serializer.data)
+
 @api_view(['POST'])
-def createFood(request):
-    serializer = FoodSerializer(data=request.data)
+def createchat(request):
+    serializer = ChatSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
     return Response(serializer.data)
 
+@api_view(['DELETE'])
+def deleteChat(request, pk):
+    chat = Chat.objects.get(id=pk)
+    chat.delete()
+    return Response('Register was deleted')
+#--- food ---
+@api_view(['GET'])
+def getFood1s(request):
+    food1 = Food1.objects.all()
+    serializer = Food1Serializer(food1, many=True)
+    return Response(serializer.data)
 
-import requests
-def nutrition_data(nutrition_info):
-    nutrition_data = {}
-    
-    nutrition_elements = [
-        "Calories", "Protein", "Carbohydrates", "Dietary Fiber",
-        "Sugars", "Fat", "Sodium", "Potassium"
-    ]
-    
-    lines = nutrition_info.split('\n')
-    
-    for line in lines:
-        if not line.strip():
-            continue
-        
-        for element in nutrition_elements:
-            if element in line:
-                value_part = line.split('**')[-1].split(':')[-1].strip()
-                if element == "Calories":
-                    value = ''.join(filter(str.isdigit, value_part))  # Keep only digits
-                else:
-                    first_token = value_part.split()[0]
-                    value = ''.join(filter(lambda c: c.isdigit() or c == '.', first_token))  # Keep digits and decimal point
-                nutrition_data[element] = value
-                break
-    
-    return nutrition_data
+def getFood1(request, pk):
+    food1 = Food1.objects.get(id=pk)
+    serializer = Food1Serializer(food1, many=False)
+    return Response(serializer.data)
 
-def send_image_to_backend(file_path):
-    url = "https://1mb1-nutritionguide.hf.space/predictNUT"
-    with open(file_path, 'rb') as image_file:
-        files = {'file': image_file}
-        response = requests.post(url, files=files)
-        response_data = response.json()
-        nutrationinformation=nutrition_data(response_data.get('Nutrition_info', ''))
-    if response.status_code == 200:
-        
-        # Save the response data into the food model
-        food_instance = food(
-            namefood=response_data.get('Predicted_label', 'Unknown'),
-            Calories=float(nutrationinformation.get('Calories', 0.00)),
-            Protein=float(nutrationinformation.get('Protein', 0.00)),
-            Carbohydrates=float(nutrationinformation.get('Carbohydrates', 0.00)),
-            Dietary_Fiber=float(nutrationinformation.get('Dietary Fiber', 0.00)),
-            Sugars=float(nutrationinformation.get('Sugars', 0.00)),
-            Fat=float(nutrationinformation.get('Fat', 0.00)),
-            Sodium=float(nutrationinformation.get('Sodium', 0.00)),
-            Potassium=float(nutrationinformation.get('Potassium', 0.00)),
-            health=response_data.get('Information', ''),
-            recipy=response_data.get('Recipes', '')
-        )
-        food_instance.save()
-        return response_data
-    else:
-        raise Exception(f"Failed to send image. Status Code: {response.status_code}, Response: {response.text}")
+@api_view(['GET'])
+def getFood1date(request, date):
+    try:
+        date_obj = datetime.strptime(date, "%Y-%m-%d").date()
+        range_type = request.GET.get('range', 'day')  # default is 'day'
+        user_id = request.GET.get('user_id')  # Get user ID from query params
 
+        # Determine date range
+        if range_type == 'week':
+            start_date = date_obj - timedelta(days=6)
+            end_date = date_obj
+        elif range_type == 'month':
+            start_date = date_obj - timedelta(days=29)
+            end_date = date_obj
+        else:  # exact day
+            start_date = end_date = date_obj
 
-@csrf_exempt
-def upload_image(request):
-    if request.method == 'POST' and request.FILES.get('file'):
-        file = request.FILES['file']
-        file_name = default_storage.save(f"media/api/{file.name}", ContentFile(file.read()))
-        file_path = default_storage.path(file_name)  # Get the full file path
+        # Build base queryset
+        food1_queryset = Food1.objects.filter(created_at__range=(start_date, end_date))
 
-        try:
-            response_data = send_image_to_backend(file_path)  # Send the saved file to the backend function
-            return JsonResponse({
-                "message": "File uploaded successfully",
-                "file_path": file_name,
-                "response_data": response_data
-            })
-        except Exception as e:
-            return JsonResponse({"error": str(e)}, status=500)
+        # If user_id is provided, filter by it
+        if user_id:
+            food1_queryset = food1_queryset.filter(user_id=user_id)
 
-    return JsonResponse({"error": "Invalid request"}, status=400)
+        serializer = Food1Serializer(food1_queryset, many=True)
+        return Response(serializer.data)
 
-@app.get("/get-image/{filename}")
-def get_image(filename: str):
-    file_path = f"media/api/{filename}"
-    if os.path.exists(file_path):
-        return FileResponse(file_path)
-    return {"error": "File not found"}
+    except ValueError:
+        return Response({"error": "Invalid date format. Use YYYY-MM-DD."}, status=400)
+@api_view(['POST'])
+def createFood1(request):
+    serializer = Food1Serializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+    return Response(serializer.data)
 
-# class ImageUploadView(APIView):
-#     def post(self, request, *args, **kwargs):
-#         serializer = ImageUploadSerializer(data=request.data)
-#         if serializer.is_valid():
-#             file = serializer.validated_data['file']
-#             # Save the file or process it as needed
-#             file_path = f'media/uploads/{file.name}'
-#             with open(file_path, 'wb+') as destination:
-#                 for chunk in file.chunks():
-#                     destination.write(chunk)
-#             return Response({'message': 'File uploaded successfully'}, status=status.HTTP_200_OK)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+@api_view(['PUT'])
+def updateFood1(request, pk):
+    food1 = Food1.objects.get(id=pk)
+    serializer = Food1Serializer(food1, data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+    return Response(serializer.data)
+
+@api_view(['DELETE'])
+def deleteFood1(request, pk):
+    food1 = Food1.objects.get(id=pk)
+    food1.delete()
+    return Response('Register was deleted')
 
 
 
-
-
-class ChatBotAPIView(APIView):
-    def post(self, request):
-        serializer = ChatMessageSerializer(data=request.data)
-        if serializer.is_valid():
-            user_message = serializer.validated_data['message']
-
-            try:
-                # Send request to the external AI service
-                external_api_url = "https://1mb1-chatbotgraduation.hf.space/askbot"
-                external_response = requests.post(
-                    external_api_url,
-                    json={"message": user_message},
-                    timeout=20 # timeout in seconds
-                )
-
-                if external_response.status_code == 200:
-                    # Return the response from the external API
-                    response_data = external_response.json()
-                    # Make sure the response format matches what the frontend expects
-                    formatted_response = {
-                        'bot_response': response_data.get('response', 'Sorry, I couldn\'t process that request.')
-                    }
-                    return Response(formatted_response, status=status.HTTP_200_OK)
-                else:
-                    # Handle error from external API
-                    return Response(
-                        {'error': f'External API returned status code {external_response.status_code}'},
-                        status=status.HTTP_502_BAD_GATEWAY
-                    )
-
-            except requests.exceptions.RequestException as e:
-                # Handle connection errors, timeouts, etc.
-                return Response(
-                    {'error': f'Error connecting to external API: {str(e)}'},
-                    status=status.HTTP_503_SERVICE_UNAVAILABLE
-                )
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

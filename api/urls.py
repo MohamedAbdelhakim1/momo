@@ -1,34 +1,29 @@
-from django.urls import path, include
+from django.urls import path
 from . import views
-from django.conf import settings
-from django.conf.urls.static import static
 from .views import *
-from rest_framework.routers import DefaultRouter
-from .views import PhotoViewSet
-from django.urls import path, re_path
-from django.views.generic import TemplateView
-from fastapi import FastAPI
+from django.urls import path
 
-# Add FastAPI app instance
-app = FastAPI()
+
+
 
 urlpatterns = [
+    #--- user ---
     path("registers/", views.getRegisters),
     path("registers/create/", views.createRegister),
     path("registers/<str:pk>/update/", views.updateRegister),
     path("registers/<str:pk>/delete/", views.deleteRegister),
     path("registers/<str:pk>/", views.getRegister),
-    # path("upload/", upload_image, name="upload_image"),
-    path('ph/', PhotoViewSet.as_view({'get': 'list', 'post': 'create'}), name='photo-list'),
-     path("food/create/", views.createFood),
-]
+    #--- chat ---
+    path("chat/", views.getchat),
+    path("chat/create/", views.createchat),
+    path("chat/<str:pk>/delete/", views.deleteChat),
+    #--- food ---
+    path("foods/", views.getFood1s),
+    path("food/create1/", views.createFood1),
+    path("food/<str:pk>/update/", views.updateFood1),
+    path("food/<str:pk>/delete/", views.deleteFood1),
+    path("food/<str:pk>/", views.getFood1),
+    path("fooddate/<str:date>/", views.getFood1date),
 
-urlpatterns += [
-    path('chat/', ChatBotAPIView.as_view(), name='chat'),
-    # path('upload-image1/', ImageUploadView.as_view(), name='upload-image'),
-    path("upload-image/", views.upload_image, name="upload_image"),
-    path("get-image/<str:filename>/", views.get_image, name="get_image"),
-]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]

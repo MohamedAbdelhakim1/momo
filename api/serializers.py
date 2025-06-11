@@ -7,28 +7,14 @@ class RegisterSerializer(ModelSerializer):
     class Meta:
         model = Register
         fields = '__all__'
-   
 
-class PhotoSerializer(serializers.ModelSerializer):
+class Food1Serializer(serializers.ModelSerializer):
     class Meta:
-        model = Photo
-        fields = '__all__'
-
-class FoodSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = food
+        model = Food1
         fields = '__all__'
 
 
-class ImageUploadSerializer(serializers.Serializer):
-    file = serializers.ImageField()    
-
-
-
-
-
-class ChatMessageSerializer(serializers.Serializer):
-    message = serializers.CharField(required=True)
-
-class ChatResponseSerializer(serializers.Serializer):
-    bot_response = serializers.CharField()                    
+class ChatSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Chat
+        fields = '__all__'

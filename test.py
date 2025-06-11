@@ -97,4 +97,4 @@ async def predict_image_and_nutrition(file: UploadFile = File(...)):
     
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("te:app", host="10.0.2.2", port=8000, reload=True)
+    uvicorn.run("te:app", host="0.0.0.0", port=8000, reload=True)

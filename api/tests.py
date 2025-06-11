@@ -16,8 +16,10 @@
    
 import requests
 
-url = "http://momo66.pythonanywhere.com/chat/"
+# url = "http://momo66.pythonanywhere.com/chat/create"
+url = "http://192.168.1.19:8000/ask_chat"
 data = {"message": "hi"}
 
 response = requests.post(url, json=data)
+print(response)  # Or response.text if it's not JSON
 print(response.json())  # Or response.text if it's not JSON
